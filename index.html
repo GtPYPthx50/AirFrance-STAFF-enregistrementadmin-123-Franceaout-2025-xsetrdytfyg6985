@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Air France PTFS - Staff Panel</title>
+<style>
+  /* Reset & base */
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #003366cc 0%, #0055aacc 80%);
+    color: #d0e6ff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  h1 {
+    text-align: center;
+    font-weight: 700;
+    margin: 20px 0 10px;
+    text-shadow: 0 0 10px #66aaffaa;
+  }
+  nav {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  nav button {
+    background: transparent;
+    border: 2px solid #66aaff;
+    color: #aaddff;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: background-color 0.3s, color 0.3s;
+  }
+  nav button.active,
+  nav button:hover {
+    background: #66aaffdd;
+    color: #003366;
+    border-color: #3399ff;
+  }
+  main {
+    flex-grow: 1;
+    width: 95%;
+    max-width: 900px;
+    margin: 0 auto 40px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 15px;
+    padding: 20px 30px;
+    box-shadow: 0 0 20px #66aaff55;
+    backdrop-filter: blur(6px);
+  }
+  label {
+    display: block;
+    margin-top: 15px;
+    font-weight: 600;
+    font-size: 1.05rem;
+  }
+  input[type="text"], input[type="number"] {
+    width: 100%;
+    margin-top: 6px;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    font-size: 1rem;
+    font-weight: 500;
+    background: #003366aa;
+    color: #d0e6ff;
+    box-shadow: inset 0 0 6px #3399ff88;
+    transition: box-shadow 0.3s;
+  }
+  input[type="text"]:focus, input[type="number"]:focus {
+    outline: none;
+    box-shadow: inset 0 0 10px #66aaffcc;
+  }
+  .btn-group {
+    margin-top: 15px;
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+  .btn-score {
+    flex-grow: 1;
+    padding: 15px 10px;
+    background: #0055aa88;
+    border: 2px solid #66aaffaa;
+    color: #d0e6ff;
+    font-weight: 700;
+    font-size: 1.1rem;
+    border-radius: 12px;
+    cursor: pointer;
+    user-select: none;
+    text-align: center;
+    transition: background-color 0.3s, border-color 0.3s;
+  }
+  .btn-score.active {
+    background: #66aaffcc;
+    border-color: #3399ff;
+    color: #003366;
+  }
+  .score-display {
+    margin-top: 20px;
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-align: center;
+    text-shadow: 0 0 6px #66aaffaa;
+  }
+  button.primary {
+    margin-top: 25px;
+    background: #3399ffdd;
+    border: none;
+    padding: 15px 40px;
+    border-radius: 15px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #003366;
+    cursor: pointer;
+    box-shadow: 0 0 15px #3399ffbb;
+    transition: background-color 0.3s;
+  }
+  button.primary:hover {
+    background: #66bbffdd;
+  }
+  /* Calculateur de moyenne */
+  .calculator {
+    margin-top: 30px;
+    padding: 20px;
+    background: rgba(0, 51, 102, 0.4);
+    border-radius: 12px;
+    border: 1px solid #66aaffaa;
+  }
+  .calculator h3 {
+    margin-top: 0;
+    text-align: center;
+    color: #66aaff;
+  }
+  .calc-row {
+    display: flex;
+    gap: 15px;
+    margin: 15px 0;
+    align-items: center;
+  }
+  .calc-row label {
+    margin: 0;
+    min-width: 80px;
+  }
+  .calc-row input {
+    flex: 1;
+    margin: 0;
+  }
+  .calc-result {
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #66aaff;
+    margin-top: 15px;
+  }
+  /* NotesList table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    color: #cceeff;
+    font-size: 1rem;
+  }
+  th, td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #3399ff55;
+  }
+  th {
+    background: #003366aa;
+    font-weight: 700;
+  }
+  tr:hover {
+    background: #0055aacc;
+  }
+  /* Style pour les examens non terminés */
+  tr.exam-incomplete {
+    background: rgba(220, 20, 60, 0.2) !important;
+    border-left: 4px solid #dc143c;
+  }
+  tr.exam-incomplete:hover {
+    background: rgba(220, 20, 60, 0.3) !important;
+  }
+  .exam-status {
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+  }
+  .exam-status.incomplete {
+    background: #dc143c;
+    color: white;
+  }
+  .exam-status.complete {
+    background: #228b22;
+    color: white;
+  }
+  .action-dots {
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 1.4rem;
+    position: relative;
+    user-select: none;
+  }
+  .dropdown {
+    position: absolute;
+    right: 0;
+    top: 30px;
+    background: #003366dd;
+    border-radius: 10px;
+    box-shadow: 0 0 10px #66aaffcc;
+    z-index: 10;
+    min-width: 170px;
+    display: none;
+    flex-direction: column;
+  }
+  .dropdown.show {
+    display: flex;
+  }
+  .dropdown button {
+    background: transparent;
+    border: none;
+    color: #aaddff;
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 0;
+    transition: background-color 0.2s;
+  }
+  .dropdown button:hover {
+    background: #66aaffdd;
+    color: #003366;
+  }
+  /* Modal */
+  .modal-bg {
+    position: fixed;
+    top:0; left:0; right:0; bottom:0;
+    background: rgba(0,0,0,0.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+  }
+  .modal-bg.show {
+    display: flex;
+  }
+  .modal {
+    background: #003366cc;
+    padding: 30px 40px;
+    border-radius: 15px;
+    color: #cceeff;
+    max-width: 450px;
+    width: 90%;
+    box-shadow: 0 0 25px #3399ffbb;
+  }
+  .modal h2 {
+    margin-top: 0;
+  }
+  .modal p {
+    margin: 15px 0;
+  }
+  .modal button {
+    margin-top: 20px;
+    background: #3399ffdd;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 12px;
+    font-weight: 700;
+    color: #003366;
+    cursor: pointer;
+    box-shadow: 0 0 15px #3399ffbb;
+  }
+</style>
+</head>
+<body>
+
+<h1>Air France PTFS - Staff Panel</h1>
+
+<nav>
+  <button id="tab-enregistrement" class="active">Enregistrement</button>
+  <button id="tab-noteslist">NotesList</button>
+</nav>
+
+<main>
+  <!-- Onglet Enregistrement -->
+  <section id="page-enregistrement">
+    <label for="pseudoRoblox">Pseudo Roblox :</label>
+    <input type="text" id="pseudoRoblox" placeholder="Entrez le pseudo Roblox" />
+
+    <label for="pseudoDiscord">Pseudo Discord :</label>
+    <input type="text" id="pseudoDiscord" placeholder="Entrez le pseudo Discord" />
+
+    <label>Notes théoriques (chaque bouton ajoute un score):</label>
+    <div class="btn-group" id="theory-buttons">
+      <div class="btn-score" data-name="NATO" data-score="15">NATO Alphabet (15 pts)</div>
+      <div class="btn-score" data-name="Windshear" data-score="10">Windshear (10 pts)</div>
+      <div class="btn-score" data-name="PAPI" data-score="15">PAPI (15 pts)</div>
+      <div class="btn-score" data-name="Horizontal" data-score="10">Horizontal Stabilizer (10 pts)</div>
+    </div>
+
+    <div class="score-display" id="score-theorique">Note théorique : 0 / 50 pts</div>
+
+    <label for="noteFinale">Note finale (entre 0 et 100):</label>
+    <input type="number" id="noteFinale" placeholder="Entrez la note finale" min="0" max="100" />
+
+    <!-- Calculateur de moyenne -->
+    <div class="calculator">
+      <h3>Calculateur de Moyenne</h3>
+      <div class="calc-row">
+        <label>Note 1 :</label>
+        <input type="number" id="calc-note1" placeholder="Note 1" min="0" max="100" />
+      </div>
+      <div class="calc-row">
+        <label>Note 2 :</label>
+        <input type="number" id="calc-note2" placeholder="Note 2" min="0" max="100" />
+      </div>
+      <div class="calc-result" id="calc-moyenne">Moyenne : N/A</div>
+      <button class="primary" id="btnUtiliserMoyenne" style="width: 100%; margin-top: 15px;">Utiliser cette moyenne</button>
+    </div>
+
+    <button class="primary" id="btnEnregistrerTemporaire">Enregistrer temporairement</button>
+    <button class="primary" id="btnEnregistrerFinal" style="margin-left:15px; background:#1a7b1a;">Enregistrer définitivement</button>
+  </section>
+
+  <!-- Onglet NotesList -->
+  <section id="page-noteslist" style="display:none;">
+    <table>
+      <thead>
+        <tr>
+          <th>Pseudo Roblox</th>
+          <th>Pseudo Discord</th>
+          <th>Note finale</th>
+          <th>Statut</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="notesListBody">
+        <!-- Liste générée ici -->
+      </tbody>
+    </table>
+  </section>
+</main>
+
+<!-- Modal détails -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal" id="modal-content">
+    <h2>Détails</h2>
+    <p id="modal-text">Chargement...</p>
+    <button id="modal-close">Fermer</button>
+  </div>
+</div>
+
+<script>
+  // Gestion onglets
+  const btnTabEnregistrement = document.getElementById("tab-enregistrement");
+  const btnTabNotesList = document.getElementById("tab-noteslist");
+  const pageEnregistrement = document.getElementById("page-enregistrement");
+  const pageNotesList = document.getElementById("page-noteslist");
+
+  btnTabEnregistrement.onclick = () => {
+    btnTabEnregistrement.classList.add("active");
+    btnTabNotesList.classList.remove("active");
+    pageEnregistrement.style.display = "block";
+    pageNotesList.style.display = "none";
+  };
+  btnTabNotesList.onclick = () => {
+    btnTabNotesList.classList.add("active");
+    btnTabEnregistrement.classList.remove("active");
+    pageEnregistrement.style.display = "none";
+    pageNotesList.style.display = "block";
+    refreshNotesList();
+  };
+
+  // Variables formulaire
+  const theoryButtons = document.querySelectorAll("#theory-buttons .btn-score");
+  const scoreTheoriqueEl = document.getElementById("score-theorique");
+  const noteFinaleInput = document.getElementById("noteFinale");
+  const btnEnregistrerTemporaire = document.getElementById("btnEnregistrerTemporaire");
+  const btnEnregistrerFinal = document.getElementById("btnEnregistrerFinal");
+  const pseudoRobloxInput = document.getElementById("pseudoRoblox");
+  const pseudoDiscordInput = document.getElementById("pseudoDiscord");
+
+  // Variables calculateur
+  const calcNote1 = document.getElementById("calc-note1");
+  const calcNote2 = document.getElementById("calc-note2");
+  const calcMoyenne = document.getElementById("calc-moyenne");
+  const btnUtiliserMoyenne = document.getElementById("btnUtiliserMoyenne");
+
+  // Stockage local
+  const STORAGE_KEY = "airfrance_ptfs_staff_notes";
+  const TEMP_STORAGE_KEY = "airfrance_ptfs_staff_temp";
+
+  // Etat de notation théorique
+  let theoryScores = {
+    NATO: 0,
+    Windshear: 0,
+    PAPI: 0,
+    Horizontal: 0
+  };
+
+  // Toggle boutons théorie
+  theoryButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (btn.classList.contains("active")) {
+        btn.classList.remove("active");
+        theoryScores[btn.dataset.name] = 0;
+      } else {
+        btn.classList.add("active");
+        theoryScores[btn.dataset.name] = parseInt(btn.dataset.score);
+      }
+      updateTheoreticalScore();
+    });
+  });
+
+  function updateTheoreticalScore() {
+    let total = 0;
+    for (const key in theoryScores) {
+      total += theoryScores[key];
+    }
+    if (total > 50) total = 50;
+    scoreTheoriqueEl.textContent = `Note théorique : ${total} / 50 pts`;
+  }
+
+  // Calculateur de moyenne
+  function updateMoyenne() {
+    const note1 = parseFloat(calcNote1.value);
+    const note2 = parseFloat(calcNote2.value);
+    
+    if (isNaN(note1) || isNaN(note2)) {
+      calcMoyenne.textContent = "Moyenne : N/A";
+      return;
+    }
+    
+    // Limiter les notes à 100 max
+    const limitedNote1 = Math.min(note1, 100);
+    const limitedNote2 = Math.min(note2, 100);
+    
+    if (limitedNote1 !== note1) calcNote1.value = limitedNote1;
+    if (limitedNote2 !== note2) calcNote2.value = limitedNote2;
+    
+    const moyenne = (limitedNote1 + limitedNote2) / 2;
+    calcMoyenne.textContent = `Moyenne : ${moyenne.toFixed(1)}`;
+  }
+
+  calcNote1.addEventListener("input", updateMoyenne);
+  calcNote2.addEventListener("input", updateMoyenne);
+
+  btnUtiliserMoyenne.onclick = () => {
+    const note1 = parseFloat(calcNote1.value);
+    const note2 = parseFloat(calcNote2.value);
+    
+    if (!isNaN(note1) && !isNaN(note2)) {
+      const moyenne = (Math.min(note1, 100) + Math.min(note2, 100)) / 2;
+      noteFinaleInput.value = Math.round(moyenne);
+      alert(`Moyenne de ${moyenne.toFixed(1)} appliquée à la note finale.`);
+    } else {
+      alert("Veuillez saisir deux notes valides pour calculer la moyenne.");
+    }
+  };
+
+  // Sauvegarder temporaire avec ajout automatique à la liste
+  btnEnregistrerTemporaire.onclick = () => {
+    const pseudoRoblox = pseudoRobloxInput.value.trim();
+    const pseudoDiscord = pseudoDiscordInput.value.trim();
+
+    if (!pseudoRoblox || !pseudoDiscord) {
+      alert("Merci d'entrer les pseudos Roblox et Discord.");
+      return;
+    }
+
+    const tempData = {
+      pseudoRoblox: pseudoRoblox,
+      pseudoDiscord: pseudoDiscord,
+      theoryScores: {...theoryScores},
+      noteFinale: noteFinaleInput.value.trim(),
+      timestampStart: Date.now()
+    };
+    localStorage.setItem(TEMP_STORAGE_KEY, JSON.stringify(tempData));
+
+    // Ajouter automatiquement à la liste comme examen non terminé
+    let savedNotes = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    
+    // Supprimer si existe déjà
+    savedNotes = savedNotes.filter(
+      n => n.pseudoDiscord !== pseudoDiscord && n.pseudoRoblox !== pseudoRoblox
+    );
+
+    // Calcul note théorique
+    let theoreticalNote = 0;
+    for (const k in theoryScores) theoreticalNote += theoryScores[k];
+    if (theoreticalNote > 50) theoreticalNote = 50;
+
+    const tempNote = {
+      id: "temp_" + Date.now(),
+      pseudoRoblox,
+      pseudoDiscord,
+      theoryNote: theoreticalNote,
+      finalNote: "En cours",
+      noteFinalRaw: 0,
+      examDone: false,
+      durationSec: 0,
+      timestampStart: Date.now(),
+      timestampEnd: null,
+      isTemporary: true
+    };
+
+    savedNotes.push(tempNote);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(savedNotes));
+    
+    alert("Données enregistrées temporairement et ajoutées à la liste.");
+  };
+
+  // Charger temporaire au démarrage
+  window.addEventListener("load", () => {
+    const temp = localStorage.getItem(TEMP_STORAGE_KEY);
+    if (temp) {
+      const data = JSON.parse(temp);
+      pseudoRobloxInput.value = data.pseudoRoblox || "";
+      pseudoDiscordInput.value = data.pseudoDiscord || "";
+      noteFinaleInput.value = data.noteFinale || "";
+      theoryScores = data.theoryScores || {NATO:0,Windshear:0,PAPI:0,Horizontal:0};
+      // Appliquer états boutons
+      theoryButtons.forEach(btn => {
+        if (theoryScores[btn.dataset.name] > 0) btn.classList.add("active");
+        else btn.classList.remove("active");
+      });
+      updateTheoreticalScore();
+      updateFinalRoundedNote();
+    }
+  });
+
+  // Sauvegarder définitivement
+  btnEnregistrerFinal.onclick = () => {
+    const pseudoRoblox = pseudoRobloxInput.value.trim();
+    const pseudoDiscord = pseudoDiscordInput.value.trim();
+
+    if (!pseudoRoblox || !pseudoDiscord) {
+      alert("Merci d'entrer les pseudos Roblox et Discord.");
+      return;
+    }
+
+    // Calcul note théorique
+    let theoreticalNote = 0;
+    for (const k in theoryScores) theoreticalNote += theoryScores[k];
+    if (theoreticalNote > 50) theoreticalNote = 50;
+
+    // Note finale (plus de limitation à 85)
+    let finalNoteRaw = parseInt(noteFinaleInput.value);
+    if (isNaN(finalNoteRaw) || finalNoteRaw < 0) {
+      alert("Merci d'entrer une note finale valide (entre 0 et 100).");
+      return;
+    }
+    if (finalNoteRaw > 100) finalNoteRaw = 100;
+    let finalNote = finalNoteRaw; // Plus de plafonnement à 85
+
+    // Date et durée fictive (exemple)
+    const now = Date.now();
+    const tempData = localStorage.getItem(TEMP_STORAGE_KEY);
+    let startTime = now;
+    if (tempData) {
+      try {
+        const tempParsed = JSON.parse(tempData);
+        if (tempParsed.timestampStart) startTime = tempParsed.timestampStart;
+      } catch {}
+    }
+    const durationMs = now - startTime;
+    const durationSec = Math.floor(durationMs / 1000);
+
+    // Préparer objet note
+    const newNote = {
+      id: "id" + Date.now(),
+      pseudoRoblox,
+      pseudoDiscord,
+      theoryNote: theoreticalNote,
+      finalNote,
+      noteFinalRaw: finalNoteRaw,
+      examDone: true,
+      durationSec,
+      timestampStart: startTime,
+      timestampEnd: now,
+      isTemporary: false
+    };
+
+    // Sauvegarder dans localStorage (base simple)
+    let savedNotes = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    // Supprime si même pseudo discord ou roblox déjà présent (mise à jour)
+    savedNotes = savedNotes.filter(
+      n => n.pseudoDiscord !== pseudoDiscord && n.pseudoRoblox !== pseudoRoblox
+    );
+    savedNotes.push(newNote);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(savedNotes));
+    alert("Note enregistrée définitivement.");
+
+    // Nettoyer formulaire + temporaire
+    pseudoRobloxInput.value = "";
+    pseudoDiscordInput.value = "";
+    noteFinaleInput.value = "";
+    calcNote1.value = "";
+    calcNote2.value = "";
+    calcMoyenne.textContent = "Moyenne : N/A";
+    theoryButtons.forEach(btn => btn.classList.remove("active"));
+    theoryScores = {NATO:0,Windshear:0,PAPI:0,Horizontal:0};
+    updateTheoreticalScore();
+    localStorage.removeItem(TEMP_STORAGE_KEY);
+  };
+
+  // Fonction pour formater durée (secondes)
+  function formatDuration(sec) {
+    const h = Math.floor(sec/3600);
+    sec %= 3600;
+    const m = Math.floor(sec/60);
+    const s = sec % 60;
+    return `${h > 0 ? h + "h " : ""}${m}m ${s}s`;
+  }
+
+  // Afficher la liste des notes
+  function refreshNotesList() {
+    const tbody = document.getElementById("notesListBody");
+    tbody.innerHTML = "";
+    let savedNotes = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    if (savedNotes.length === 0) {
+      const tr = document.createElement("tr");
+      const td = document.createElement("td");
+      td.colSpan = 5;
+      td.style.textAlign = "center";
+      td.textContent = "Aucune note enregistrée";
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+      return;
+    }
+
+    savedNotes.forEach(note => {
+      const tr = document.createElement("tr");
+      
+      // Marquer les examens non terminés en rouge
+      if (!note.examDone || note.isTemporary) {
+        tr.classList.add("exam-incomplete");
+      }
+      
+      // Roblox
+      const tdRoblox = document.createElement("td");
+      tdRoblox.textContent = note.pseudoRoblox;
+      tr.appendChild(tdRoblox);
+      
+      // Discord
+      const tdDiscord = document.createElement("td");
+      tdDiscord.textContent = note.pseudoDiscord;
+      tr.appendChild(tdDiscord);
+      
+      // Note finale
+      const tdNote = document.createElement("td");
+      tdNote.textContent = note.finalNote;
+      tr.appendChild(tdNote);
+      
+      // Statut
+      const tdStatut = document.createElement("td");
+      const statutSpan = document.createElement("span");
+      statutSpan.className = "exam-status";
+      if (note.examDone && !note.isTemporary) {
+        statutSpan.className += " complete";
+        statutSpan.textContent = "Terminé";
+      } else {
+        statutSpan.className += " incomplete";
+        statutSpan.textContent = "En cours";
+      }
+      tdStatut.appendChild(statutSpan);
+      tr.appendChild(tdStatut);
+      
+      // Actions
+      const tdActions = document.createElement("td");
+      tdActions.style.position = "relative";
+
+      // 3 points
+      const dots = document.createElement("div");
+      dots.className = "action-dots";
+      dots.textContent = "⋮";
+
+      // Dropdown menu
+      const dropdown = document.createElement("div");
+      dropdown.className = "dropdown";
+
+      // Selon si examen fini ou pas
+      if (note.examDone && !note.isTemporary) {
+        // 3 actions pour examen terminé
+        const btnRepasser = document.createElement("button");
+        btnRepasser.textContent = "Repasser examen";
+        btnRepasser.onclick = () => {
+          // Supprime note puis prérempli formulaire
+          let notes = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+          notes = notes.filter(n => n.id !== note.id);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+          // Préremplir formulaire en mode non terminé
+          pseudoRobloxInput.value = note.pseudoRoblox;
+          pseudoDiscordInput.value = note.pseudoDiscord;
+          noteFinaleInput.value = "";
+          theoryScores = {NATO:0,Windshear:0,PAPI:0,Horizontal:0};
+          theoryButtons.forEach(btn => btn.classList.remove("active"));
+          updateTheoreticalScore();
+          updateFinalRoundedNote();
+          // Retour onglet Enregistrement
+          btnTabEnregistrement.click();
+          alert("L'examen a été remis à zéro pour cet utilisateur.");
+          refreshNotesList();
+        };
+        dropdown.appendChild(btnRepasser);
+
+        const btnAvion = document.createElement("button");
+        btnAvion.textContent = "Quel avion peut-il prendre";
+        btnAvion.onclick = () => {
+          alert("Pour la note finale " + note.finalNote + ", les avions autorisés sont:\n\n- Note >= 85 : Boeing 777, Airbus A350\n- Note >= 70 : Airbus A320\n- Note < 70 : Formation supplémentaire requise.");
+        };
+        dropdown.appendChild(btnAvion);
+
+        const btnDetails = document.createElement("button");
+        btnDetails.textContent = "Détails";
+        btnDetails.onclick = () => {
+          const txt = 
+            `Temps écoulé : ${formatDuration(note.durationSec)}\n` +
+            `Note théorique : ${note.theoryNote}/50\n` +
+            `Note finale brute : ${note.noteFinalRaw}\n` +
+            `Début : ${new Date(note.timestampStart).toLocaleString()}\n` +
+            `Fin : ${new Date(note.timestampEnd).toLocaleString()}`;
+          showModal(txt);
+        };
+        dropdown.appendChild(btnDetails);
+
+      } else {
+        // Pas fini ou temporaire, action continuer
+        const btnContinuer = document.createElement("button");
+        btnContinuer.textContent = "Continuer";
+        btnContinuer.onclick = () => {
+          pseudoRobloxInput.value = note.pseudoRoblox;
+          pseudoDiscordInput.value = note.pseudoDiscord;
+          // Recharger la théorie si elle existe
+          if (note.theoryNote) {
+            // Reconstituer les scores théoriques (approximation)
+            theoryScores = {NATO:0,Windshear:0,PAPI:0,Horizontal:0};
+            let remaining = note.theoryNote;
+            // Logique simple pour reconstituer (peut être améliorée)
+            if (remaining >= 15) { theoryScores.NATO = 15; remaining -= 15; }
+            if (remaining >= 15) { theoryScores.PAPI = 15; remaining -= 15; }
+            if (remaining >= 10) { theoryScores.Windshear = 10; remaining -= 10; }
+            if (remaining >= 10) { theoryScores.Horizontal = 10; remaining -= 10; }
+          } else {
+            theoryScores = {NATO:0,Windshear:0,PAPI:0,Horizontal:0};
+          }
+          theoryButtons.forEach(btn => {
+            if (theoryScores[btn.dataset.name] > 0) btn.classList.add("active");
+            else btn.classList.remove("active");
+          });
+          updateTheoreticalScore();
+          noteFinaleInput.value = "";
+          btnTabEnregistrement.click();
+          alert("Continuez l'enregistrement pour cet utilisateur.");
+        };
+        dropdown.appendChild(btnContinuer);
+      }
+
+      // Supprimer action (toujours dispo)
+      const btnSupprimer = document.createElement("button");
+      btnSupprimer.textContent = "Supprimer";
+      btnSupprimer.style.color = "#ff6666";
+      btnSupprimer.onclick = () => {
+        if(confirm("Supprimer cette note définitivement ?")) {
+          let notes = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+          notes = notes.filter(n => n.id !== note.id);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+          refreshNotesList();
+        }
+      };
+      dropdown.appendChild(btnSupprimer);
+
+      dots.onclick = (e) => {
+        e.stopPropagation();
+        closeAllDropdowns();
+        dropdown.classList.toggle("show");
+      };
+
+      tdActions.appendChild(dots);
+      tdActions.appendChild(dropdown);
+      tr.appendChild(tdActions);
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Close dropdown if clicked outside
+  document.body.addEventListener("click", closeAllDropdowns);
+  function closeAllDropdowns() {
+    document.querySelectorAll(".dropdown.show").forEach(dd => dd.classList.remove("show"));
+  }
+
+  // Modal fonctions
+  const modalBg = document.getElementById("modal-bg");
+  const modalText = document.getElementById("modal-text");
+  const modalClose = document.getElementById("modal-close");
+  modalClose.onclick = () => {
+    modalBg.classList.remove("show");
+  };
+  function showModal(text) {
+    modalText.textContent = text;
+    modalBg.classList.add("show");
+  }
+
+</script>
+</body>
+</html>
